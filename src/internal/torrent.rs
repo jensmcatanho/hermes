@@ -88,14 +88,16 @@ impl Torrent {
     pub fn new(path: &Path) -> Result<Torrent, NewTorrentFromFileError> {
         let encoded_metainfo = fs::read(&path).expect("Something went wrong reading the file");
         let decoder = Decoder::new(encoded_metainfo);
-        let decoded_metainfo = decoder.decode();
-        
-        match Torrent::bencoding_to_torrent(*decoded_metainfo) {
-            Ok(torrent) => Ok(torrent),
-            Err(error) => {
-                println!("{}", error);
-                Err(NewTorrentFromFileError)
+
+        match decoder.decode() {
+            Ok(metainfo) => match Torrent::bencoding_to_torrent(*metainfo) {
+                Ok(torrent) => Ok(torrent),
+                Err(error) => {
+                    println!("{}", error);
+                    Err(NewTorrentFromFileError)
+                },
             },
+            Err(_) => Err(NewTorrentFromFileError)
         }
     }
     
