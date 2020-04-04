@@ -14,7 +14,7 @@ pub struct NewTorrentFromFileError;
 
 impl fmt::Display for NewTorrentFromFileError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error initializing torrent from file")
+        write!(f, "Error initializing torrent from file. Does the file exist?")
     }
 }
 
@@ -86,14 +86,16 @@ pub struct File {
 
 impl Torrent {
     pub fn new(path: &Path) -> Result<Torrent, NewTorrentFromFileError> {
-        let encoded_metainfo = fs::read(&path).expect("Something went wrong reading the file");
+        let encoded_metainfo = match fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(_) => return Err(NewTorrentFromFileError),
+        };
         let decoder = Decoder::new(encoded_metainfo);
 
         match decoder.decode() {
             Ok(metainfo) => match Torrent::bencoding_to_torrent(*metainfo) {
                 Ok(torrent) => Ok(torrent),
-                Err(error) => {
-                    println!("{}", error);
+                Err(_) => {
                     Err(NewTorrentFromFileError)
                 },
             },
