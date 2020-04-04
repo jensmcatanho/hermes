@@ -1,15 +1,12 @@
 
 use std::path::PathBuf;
 
-use hermes::internal::torrent::Torrent;
+use hermes::internal::client::Client;
 
 fn main() {
     println!("hermes - BitTorrent client");
-
+    let mut client = Client::new();
     let path = PathBuf::new().with_file_name("test.torrent");
-    match Torrent::new(&path) {
-        Ok(torrent) => println!("{}", torrent.piece_length),
-        Err(error) => println!("{}", error),
-    };
-
+    
+    client.add_torrent(&path);
 }
