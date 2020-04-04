@@ -1,6 +1,4 @@
-use std::str;
-use std::fs;
-
+use std::any::Any;
 use std::boxed::Box;
 use std::collections::HashMap;
 use std::string::String;
@@ -48,15 +46,33 @@ impl Iterator for BEncodedData {
     }
 }
 
-pub trait BEncodedType {}
+pub trait BEncodedType {
+    fn as_any(&self) -> &dyn Any;
+}
 
-impl BEncodedType for i64 {}
+impl BEncodedType for i64 {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
-impl BEncodedType for Vec<u8> {}
+impl BEncodedType for Vec<u8> {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
-impl BEncodedType for Vec<Box<dyn BEncodedType>> {}
+impl BEncodedType for Vec<Box<dyn BEncodedType>> {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
-impl BEncodedType for HashMap<String, Box<dyn BEncodedType>> {}
+impl BEncodedType for HashMap<String, Box<dyn BEncodedType>> {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
 
 pub struct Decoder {
@@ -64,11 +80,9 @@ pub struct Decoder {
 }
 
 impl Decoder {
-    pub fn new(path: &'static str) -> Decoder {
-        let metainfo = fs::read(path).expect("Something went wrong reading the file");
-
+    pub fn new(encoded_data: Vec<u8>) -> Decoder {
         Decoder{
-            encoded_data: BEncodedData::new(metainfo),
+            encoded_data: BEncodedData::new(encoded_data),
         }
     }
 

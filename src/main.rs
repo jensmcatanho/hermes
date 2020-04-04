@@ -1,8 +1,15 @@
-use hermes::internal::bencoding;
+
+use std::path::PathBuf;
+
+use hermes::internal::torrent::Torrent;
 
 fn main() {
     println!("hermes - BitTorrent client");
 
-    let decoder = bencoding::Decoder::new("test.torrent");
-    let dictionary = decoder.decode();
+    let path = PathBuf::new().with_file_name("test.torrent");
+    match Torrent::new(&path) {
+        Ok(torrent) => println!("{}", torrent.piece_length),
+        Err(error) => println!("{}", error),
+    };
+
 }
