@@ -1,12 +1,16 @@
+use hermes::commands::add;
 
-use std::path::PathBuf;
-
-use hermes::internal::client::Client;
+use clap::{App, AppSettings, load_yaml};
 
 fn main() {
-    println!("hermes - BitTorrent client");
-    let mut client = Client::new();
-    let path = PathBuf::new().with_file_name("test.torrent");
-    
-    client.add_torrent(&path);
+    let yaml = load_yaml!("hermes.yaml");
+    let app = App::from_yaml(yaml).setting(AppSettings::ArgRequiredElseHelp);
+
+    match app.get_matches_safe() {
+        Ok(matches) => match matches.subcommand() {
+            ("add", Some(torrent_file)) => add::command(torrent_file),
+            _ => println!("aaa {}", matches.usage().to_string()),
+        },
+        Err(_) => {},
+    }
 }

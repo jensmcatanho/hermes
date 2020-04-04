@@ -1,0 +1,12 @@
+name: hermes
+version: "0.1.0"
+about: CLI BitTorrent client
+subcommands:
+    - add:
+        about: adds a torrent file to the queue
+        version: "0.1.0"
+        args:
+            - FILE:
+                help: torrent file to be added to the queue
+                required: true
+                min_values: 1
