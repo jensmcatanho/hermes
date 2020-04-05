@@ -14,7 +14,7 @@ pub struct NewTorrentFromFileError;
 
 impl fmt::Display for NewTorrentFromFileError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error initializing torrent from file. Does the file exist?")
+        write!(f, "Error initializing torrent from file.")
     }
 }
 
@@ -31,7 +31,7 @@ struct MissingRequiredFieldError {
 
 impl fmt::Display for MissingRequiredFieldError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Missing required field")
+        write!(f, "Missing required field \"{}\"", self.field)
     }
 }
 
@@ -95,7 +95,8 @@ impl Torrent {
         match decoder.decode() {
             Ok(metainfo) => match Torrent::bencoding_to_torrent(*metainfo) {
                 Ok(torrent) => Ok(torrent),
-                Err(_) => {
+                Err(error) => {
+                    println!("{}", error);
                     Err(NewTorrentFromFileError)
                 },
             },
