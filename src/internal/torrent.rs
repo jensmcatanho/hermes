@@ -137,10 +137,12 @@ impl Torrent {
         torrent.pieces = pieces_value;
 
         let private_key = "private".to_string();
-        torrent.is_private = Torrent::bencoded_to_bool(&info, private_key);
+        torrent.is_private = match info.contains_key(&private_key) {
+            true => Torrent::bencoded_to_bool(&info, private_key),
+            false => false,
+        };
         
         let files_key = "files".to_string();
-
         match info[&files_key].as_any().downcast_ref::<Vec<Box<dyn BEncodedType>>>() {
             Some(files) => {
                 let mut accumulated: i64 = 0;
