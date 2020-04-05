@@ -8,6 +8,7 @@ use std::string::String;
 use std::vec::Vec;
 
 use crate::internal::bencoding::{Decoder, BEncodedType};
+use crate::internal::piece::Piece;
 
 #[derive(Debug, Clone)]
 pub struct NewTorrentFromFileError;
@@ -52,32 +53,6 @@ const REQUIRED_FIELDS: [&'static str; 8] = [
     "path",
 ];
 
-pub struct Torrent {
-    pub comment: String,
-    pub created_by: String,
-    pub encoding: String,
-    trackers: Vec<Tracker>,
-    pub is_private: bool,
-    pub piece_length: i32,
-    pub pieces: Vec<u8>,
-    files: Vec<File>,
-}
-
-impl Default for Torrent {
-    fn default() -> Torrent {
-        Torrent{
-            comment: String::new(),
-            created_by: String::new(),
-            encoding: String::new(),
-            trackers: Vec::new(),
-            is_private: false,
-            piece_length: 0,
-            pieces: Vec::new(),
-            files: Vec::new(),
-        }
-    }
-}
-
 struct File {
     pub path: PathBuf,
     pub size: i64,
@@ -102,6 +77,35 @@ impl Tracker {
     fn new(address: String) -> Tracker {
         Tracker{
             address: address,
+        }
+    }
+}
+
+pub struct Torrent {
+    pub comment: String,
+    pub created_by: String,
+    pub encoding: String,
+    trackers: Vec<Tracker>,
+    pub is_private: bool,
+    pub piece_length: i32,
+    pieces: Vec<Piece>,
+    files: Vec<File>,
+
+    hash: Vec<u8>,
+}
+
+impl Default for Torrent {
+    fn default() -> Torrent {
+        Torrent{
+            comment: String::new(),
+            created_by: String::new(),
+            encoding: String::new(),
+            trackers: Vec::new(),
+            is_private: false,
+            piece_length: 0,
+            pieces: Vec::new(),
+            files: Vec::new(),
+            hash: Vec::new(),
         }
     }
 }
@@ -151,14 +155,6 @@ impl Torrent {
             None => return Err(MissingRequiredFieldError{ field: info_key })
         };
 
-        let piece_length_key = "piece length".to_string();
-        let piece_length_value = Torrent::bencoded_to_i64(&info, piece_length_key)?;
-        torrent.piece_length = piece_length_value as i32;
-
-        let pieces_key = "pieces".to_string();
-        let pieces_value = Torrent::bencoded_to_bytes(&info, pieces_key)?;
-        torrent.pieces = pieces_value;
-
         let private_key = "private".to_string();
         torrent.is_private = match info.contains_key(&private_key) {
             true => Torrent::bencoded_to_bool(&info, private_key),
@@ -199,6 +195,29 @@ impl Torrent {
                 torrent.files.push(File::new(name_value, length_value, 0));
             },
         };
+
+        let piece_length_key = "piece length".to_string();
+        let piece_length_value = Torrent::bencoded_to_i64(&info, piece_length_key)?;
+        torrent.piece_length = piece_length_value as i32;
+
+        let pieces_key = "pieces".to_string();
+        let pieces_value = Torrent::bencoded_to_bytes(&info, pieces_key)?;
+
+        let total_size = torrent.files.iter().fold(0, |acc, file| acc + file.size);
+        let pieces_count: usize = ((total_size as f64) / (piece_length_value as f64)).ceil() as usize;
+
+        let mut hash_chunks = pieces_value.chunks(pieces_count);
+        torrent.pieces.reserve(pieces_count);
+        for i in 0..pieces_count {
+            let piece_size = match i {
+                _ if i < pieces_count - 1 => piece_length_value,
+                _ => total_size % piece_length_value,
+            };
+
+            torrent.pieces[i] = Piece::new(piece_size, hash_chunks.next().unwrap().to_vec());
+        }
+        
+
 
         Ok(torrent)
     }
