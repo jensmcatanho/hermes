@@ -154,7 +154,10 @@ impl Torrent {
                     };
 
                     let path_key = "path".to_string();
-                    let path_value = Torrent::bencoded_to_string(&file_info, path_key)?;
+                    let path_value = match file_info[&path_key].as_any().downcast_ref::<Vec<String>>() {
+                        Some(path) => path.join(""),
+                        None => continue,
+                    };
 
                     let size_key = "length".to_string();
                     let size_value = Torrent::bencoded_to_i64(&file_info, size_key)?;
