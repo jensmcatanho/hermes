@@ -84,6 +84,16 @@ struct File {
     pub offset: i64,
 }
 
+impl File {
+    fn new(path: String, size: i64, offset: i64) -> File {
+        File{
+            path: PathBuf::from(path),
+            size: size,
+            offset: offset,
+        }
+    }
+}
+
 impl Torrent {
     pub fn new(path: &Path) -> Result<Torrent, NewTorrentFromFileError> {
         let encoded_metainfo = match fs::read(&path) {
@@ -163,12 +173,7 @@ impl Torrent {
                     let size_key = "length".to_string();
                     let size_value = Torrent::bencoded_to_i64(&file_info, size_key)?;
 
-                    torrent.files.push(File{
-                        path: PathBuf::from(path_value),
-                        size: size_value,
-                        offset: accumulated,
-                    });
-
+                    torrent.files.push(File::new(path_value, size_value, accumulated));
                     accumulated += size_value;
                 }
             },
@@ -179,11 +184,7 @@ impl Torrent {
                 let length_key = "length".to_string();
                 let length_value = Torrent::bencoded_to_i64(&info, length_key)?;
                 
-                torrent.files.push(File{
-                    path: PathBuf::from(name_value),
-                    size: length_value,
-                    offset: 0,
-                });
+                torrent.files.push(File::new(name_value, length_value, 0));
             },
         };
 
