@@ -60,7 +60,7 @@ pub struct Torrent {
     pub is_private: bool,
     pub piece_length: i32,
     pub pieces: Vec<u8>,
-    pub files: Vec<File>,
+    files: Vec<File>,
 }
 
 impl Default for Torrent {
@@ -78,7 +78,7 @@ impl Default for Torrent {
     }
 }
 
-pub struct File {
+struct File {
     pub path: PathBuf,
     pub size: i64,
     pub offset: i64,
