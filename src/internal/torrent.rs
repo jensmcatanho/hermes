@@ -56,7 +56,7 @@ pub struct Torrent {
     pub comment: String,
     pub created_by: String,
     pub encoding: String,
-    pub trackers: Vec<String>,
+    trackers: Vec<Tracker>,
     pub is_private: bool,
     pub piece_length: i32,
     pub pieces: Vec<u8>,
@@ -94,6 +94,18 @@ impl File {
     }
 }
 
+struct Tracker {
+    pub address: String,
+}
+
+impl Tracker {
+    fn new(address: String) -> Tracker {
+        Tracker{
+            address: address,
+        }
+    }
+}
+
 impl Torrent {
     pub fn new(path: &Path) -> Result<Torrent, NewTorrentFromFileError> {
         let encoded_metainfo = match fs::read(&path) {
@@ -119,7 +131,7 @@ impl Torrent {
         
         let announce_key = "announce".to_string();
         let announce_value = Torrent::bencoded_to_string(&data, announce_key)?;
-        torrent.trackers.push(announce_value);
+        torrent.trackers.push(Tracker::new(announce_value));
 
         let created_by_key = "created by".to_string();
         let created_by_value = Torrent::bencoded_to_string(&data, created_by_key)?;
