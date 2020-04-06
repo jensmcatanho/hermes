@@ -7,8 +7,8 @@ use std::path::{Path, PathBuf};
 use std::string::String;
 use std::vec::Vec;
 
-use crate::internal::bencoding::{Decoder, BEncodedType};
-use crate::internal::piece::Piece;
+use crate::torrent::bencoding::{Decoder, BEncodedType};
+use crate::torrent::piece::Piece;
 
 #[derive(Debug, Clone)]
 pub struct NewTorrentFromFileError;

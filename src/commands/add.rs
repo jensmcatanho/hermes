@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::internal::client::{Client};
+use crate::client::client::{Client};
 
 use clap::ArgMatches;
 

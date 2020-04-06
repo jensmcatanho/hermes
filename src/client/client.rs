@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::vec::Vec;
 
-use crate::internal::torrent;
+use crate::torrent::torrent;
 
 pub struct Client {
     torrents: Vec<torrent::Torrent>,
